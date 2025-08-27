@@ -27,14 +27,9 @@ st.markdown("""
     /* Hide Streamlit Cloud UI elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
     
     /* Hide share button and GitHub link */
     .stDeployButton {display: none;}
-    .stApp > header {display: none;}
-    
-    /* Hide the hamburger menu */
-    .stApp > div[data-testid="stToolbar"] {display: none;}
     
     /* Hide the "made with streamlit" footer */
     .stApp > footer {display: none;}
