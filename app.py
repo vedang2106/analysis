@@ -38,9 +38,9 @@ st.markdown("""
     .stApp > div[data-testid="stDecoration"] {display: none;}
     
     /* Hide Share, Star, and GitHub buttons */
-    .stApp > div[data-testid="stToolbar"] {display: none;}
-    .stApp > div[data-testid="stToolbar"] > div {display: none;}
-    .stApp > div[data-testid="stToolbar"] > div > div {display: none;}
+    .stApp > div[data-testid="stToolbar"] {display: none !important;}
+    .stApp > div[data-testid="stToolbar"] > div {display: none !important;}
+    .stApp > div[data-testid="stToolbar"] > div > div {display: none !important;}
     
     /* Hide specific buttons by text content */
     .stApp button:contains("Share") {display: none !important;}
@@ -50,6 +50,18 @@ st.markdown("""
     /* Alternative selectors for the toolbar buttons */
     .stApp > div[data-testid="stToolbar"] button {display: none !important;}
     .stApp > div[data-testid="stToolbar"] a {display: none !important;}
+    
+    /* More aggressive hiding for toolbar elements */
+    .stApp > div[data-testid="stToolbar"] * {display: none !important;}
+    
+    /* Hide any element containing Share, Star, or GitHub text */
+    .stApp *:contains("Share") {display: none !important;}
+    .stApp *:contains("⭐") {display: none !important;}
+    .stApp *:contains("GitHub") {display: none !important;}
+    
+    /* Hide the entire toolbar container */
+    div[data-testid="stToolbar"] {display: none !important;}
+    div[data-testid="stToolbar"] * {display: none !important;}
     
     .main-header {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
