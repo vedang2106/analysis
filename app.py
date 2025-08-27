@@ -49,14 +49,18 @@ st.set_page_config(
     page_title="Data Analyst Automation",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
 )
 
 # Custom CSS for better styling
 st.markdown("""
 <style>
     /* Hide Streamlit Cloud UI elements */
-    #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     
     /* Hide share button and GitHub link */
@@ -68,31 +72,13 @@ st.markdown("""
     /* Hide the "deployed on streamlit cloud" banner */
     .stApp > div[data-testid="stDecoration"] {display: none;}
     
-    /* Hide Share, Star, and GitHub buttons */
-    .stApp > div[data-testid="stToolbar"] {display: none !important;}
-    .stApp > div[data-testid="stToolbar"] > div {display: none !important;}
-    .stApp > div[data-testid="stToolbar"] > div > div {display: none !important;}
+    /* Hide only specific toolbar elements but keep menu */
+    .stApp > div[data-testid="stToolbar"] > div:not(:first-child) {display: none !important;}
     
     /* Hide specific buttons by text content */
     .stApp button:contains("Share") {display: none !important;}
     .stApp button:contains("⭐") {display: none !important;}
     .stApp a[href*="github.com"] {display: none !important;}
-    
-    /* Alternative selectors for the toolbar buttons */
-    .stApp > div[data-testid="stToolbar"] button {display: none !important;}
-    .stApp > div[data-testid="stToolbar"] a {display: none !important;}
-    
-    /* More aggressive hiding for toolbar elements */
-    .stApp > div[data-testid="stToolbar"] * {display: none !important;}
-    
-    /* Hide any element containing Share, Star, or GitHub text */
-    .stApp *:contains("Share") {display: none !important;}
-    .stApp *:contains("⭐") {display: none !important;}
-    .stApp *:contains("GitHub") {display: none !important;}
-    
-    /* Hide the entire toolbar container */
-    div[data-testid="stToolbar"] {display: none !important;}
-    div[data-testid="stToolbar"] * {display: none !important;}
     
     .main-header {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
@@ -179,28 +165,30 @@ st.markdown("""
 
 # Security features active in background (no UI display)
 
-# Main header
+# Professional header with navigation hint
 st.markdown("""
 <div class="main-header">
     <h1>📊 Data Analyst Automation Tool</h1>
     <p style="font-size: 1.2rem; margin: 0;">Upload a dataset (CSV, Excel, JSON), auto-analyze, and export comprehensive reports</p>
+    <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0; opacity: 0.8;">💡 Use the menu (☰) in the top-left to access upload options</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar with enhanced styling
+# Professional sidebar with enhanced styling
 with st.sidebar:
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; border-radius: 10px; color: white; margin-bottom: 2rem;">
-        <h3>⚙️ Options</h3>
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 15px; color: white; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0; font-size: 1.3rem;">⚙️ Analysis Options</h3>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.9rem;">Configure your data analysis settings</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # File upload with enhanced styling
+    # Professional file upload section
     st.markdown("""
-    <div class="upload-area">
-        <h4>📁 Upload Dataset</h4>
-        <p>Drag and drop or browse to upload</p>
-        <p style="font-size: 0.9rem; color: #666;">Limit: 200MB • Formats: CSV, XLSX, XLS, JSON</p>
+    <div class="upload-area" style="border: 2px dashed #667eea; border-radius: 15px; padding: 2rem; text-align: center; background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%); margin-bottom: 1.5rem;">
+        <h4 style="margin: 0 0 1rem 0; color: #667eea; font-size: 1.2rem;">📁 Upload Dataset</h4>
+        <p style="margin: 0 0 0.5rem 0; color: #555; font-weight: 500;">Drag and drop or browse to upload</p>
+        <p style="font-size: 0.85rem; color: #777; margin: 0;">Limit: 200MB • Formats: CSV, XLSX, XLS, JSON</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -230,11 +218,17 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Export options with better styling
-    st.markdown("**📤 Export Options**")
-    output_excel = st.checkbox("📊 Excel (cleaned + summary + charts)", value=True)
-    output_powerbi = st.checkbox("🔗 Power BI bundle (CSV + charts ZIP)", value=True)
-    output_pdf = st.checkbox("📄 PDF report (with charts)", value=True)
+    # Professional export options section
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%); padding: 1.5rem; border-radius: 15px; border: 1px solid #e0e0e0; margin-bottom: 1.5rem;">
+        <h4 style="margin: 0 0 1rem 0; color: #667eea; font-size: 1.1rem;">📤 Export Options</h4>
+        <p style="margin: 0 0 1rem 0; color: #666; font-size: 0.9rem;">Select the formats you'd like to export your analysis</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    output_excel = st.checkbox("📊 Excel Report (cleaned data + summary + charts)", value=True, help="Comprehensive Excel file with all analysis results")
+    output_powerbi = st.checkbox("🔗 Power BI Bundle (CSV + charts ZIP)", value=True, help="Ready-to-use Power BI files with visualizations")
+    output_pdf = st.checkbox("📄 PDF Report (professional report with charts)", value=True, help="Professional PDF report with all findings")
 
 # Main content
 if uploaded is not None:
@@ -729,11 +723,12 @@ if uploaded is not None:
         figs = []
 
 else:
-    # Welcome message when no file uploaded
+    # Professional welcome message
     st.markdown("""
-    <div class="info-box">
-        <h2>🚀 Welcome to Data Analyst Automation!</h2>
-        <p style="font-size: 1.1rem;">Upload a dataset to get started with automated analysis</p>
+    <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 20px; color: white; text-align: center; margin-bottom: 2rem; box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);">
+        <h2 style="margin: 0 0 1rem 0; font-size: 2rem;">🚀 Welcome to Data Analyst Automation!</h2>
+        <p style="font-size: 1.2rem; margin: 0 0 1rem 0; opacity: 0.9;">Upload a dataset to get started with automated analysis</p>
+        <p style="font-size: 1rem; margin: 0; opacity: 0.8;">Professional-grade insights in minutes, not hours</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -742,25 +737,25 @@ else:
     
     with col1:
         st.markdown("""
-        <div class="metric-card">
-            <h3 style="color: #667eea;">🔍 Auto-Analysis</h3>
-            <p>Automatic data profiling, cleaning, and insights</p>
+        <div class="metric-card" style="background: white; padding: 2rem; border-radius: 15px; border: 1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s ease;">
+            <h3 style="color: #667eea; margin: 0 0 1rem 0; font-size: 1.3rem;">🔍 Auto-Analysis</h3>
+            <p style="color: #666; margin: 0; line-height: 1.5;">Automatic data profiling, cleaning, and insights generation</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
-        <div class="metric-card">
-            <h3 style="color: #667eea;">💬 Smart Q&A</h3>
-            <p>Ask questions about your data in natural language</p>
+        <div class="metric-card" style="background: white; padding: 2rem; border-radius: 15px; border: 1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s ease;">
+            <h3 style="color: #667eea; margin: 0 0 1rem 0; font-size: 1.3rem;">💬 Smart Q&A</h3>
+            <p style="color: #666; margin: 0; line-height: 1.5;">Ask questions about your data in natural language</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown("""
-        <div class="metric-card">
-            <h3 style="color: #667eea;">📤 Multi-Format Export</h3>
-            <p>Export to Excel, Power BI, and PDF with charts</p>
+        <div class="metric-card" style="background: white; padding: 2rem; border-radius: 15px; border: 1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s ease;">
+            <h3 style="color: #667eea; margin: 0 0 1rem 0; font-size: 1.3rem;">📤 Multi-Format Export</h3>
+            <p style="color: #666; margin: 0; line-height: 1.5;">Export to Excel, Power BI, and PDF with charts</p>
         </div>
         """, unsafe_allow_html=True)
 
