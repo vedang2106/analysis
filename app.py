@@ -24,6 +24,24 @@ st.set_page_config(
 # Custom CSS for better styling
 st.markdown("""
 <style>
+    /* Hide Streamlit Cloud UI elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Hide share button and GitHub link */
+    .stDeployButton {display: none;}
+    .stApp > header {display: none;}
+    
+    /* Hide the hamburger menu */
+    .stApp > div[data-testid="stToolbar"] {display: none;}
+    
+    /* Hide the "made with streamlit" footer */
+    .stApp > footer {display: none;}
+    
+    /* Hide the "deployed on streamlit cloud" banner */
+    .stApp > div[data-testid="stDecoration"] {display: none;}
+    
     .main-header {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         padding: 2rem;
