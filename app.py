@@ -37,6 +37,20 @@ st.markdown("""
     /* Hide the "deployed on streamlit cloud" banner */
     .stApp > div[data-testid="stDecoration"] {display: none;}
     
+    /* Hide Share, Star, and GitHub buttons */
+    .stApp > div[data-testid="stToolbar"] {display: none;}
+    .stApp > div[data-testid="stToolbar"] > div {display: none;}
+    .stApp > div[data-testid="stToolbar"] > div > div {display: none;}
+    
+    /* Hide specific buttons by text content */
+    .stApp button:contains("Share") {display: none !important;}
+    .stApp button:contains("⭐") {display: none !important;}
+    .stApp a[href*="github.com"] {display: none !important;}
+    
+    /* Alternative selectors for the toolbar buttons */
+    .stApp > div[data-testid="stToolbar"] button {display: none !important;}
+    .stApp > div[data-testid="stToolbar"] a {display: none !important;}
+    
     .main-header {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         padding: 2rem;
