@@ -13,6 +13,37 @@ from src.insights import generate_insights
 from src.exports import export_excel_with_summary, export_powerbi_csv, export_powerbi_bundle, export_pdf_report
 from src.nlqa import answer_question
 
+# Security configuration
+import secrets
+import hashlib
+import time
+
+# Generate secure session token
+if 'session_token' not in st.session_state:
+    st.session_state.session_token = secrets.token_hex(32)
+    st.session_state.login_time = time.time()
+
+# Session timeout (8 hours)
+SESSION_TIMEOUT = 8 * 60 * 60
+if time.time() - st.session_state.login_time > SESSION_TIMEOUT:
+    st.error("⚠️ Session expired. Please refresh the page to continue.")
+    st.stop()
+
+# Rate limiting
+if 'request_count' not in st.session_state:
+    st.session_state.request_count = 0
+    st.session_state.last_request_time = time.time()
+
+current_time = time.time()
+if current_time - st.session_state.last_request_time < 1:  # 1 second cooldown
+    st.session_state.request_count += 1
+    if st.session_state.request_count > 10:  # Max 10 requests per second
+        st.error("⚠️ Too many requests. Please wait a moment.")
+        st.stop()
+else:
+    st.session_state.request_count = 1
+    st.session_state.last_request_time = current_time
+
 # Page configuration
 st.set_page_config(
     page_title="Data Analyst Automation",
@@ -122,8 +153,31 @@ st.markdown("""
         text-align: center;
         background: #f8f9ff;
     }
+    
+    /* Security warning styles */
+    .security-warning {
+        background: linear-gradient(90deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 1rem;
+        border: 2px solid #c44569;
+    }
+    
+    .security-info {
+        background: linear-gradient(90deg, #00b894 0%, #00a085 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 1rem;
+        border: 2px solid #00a085;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+# Security features active in background (no UI display)
 
 # Main header
 st.markdown("""
@@ -153,7 +207,26 @@ with st.sidebar:
     uploaded = st.file_uploader("", type=["csv", "xlsx", "xls", "json"], label_visibility="collapsed")
     
     if uploaded:
-        st.success(f"✅ {uploaded.name} uploaded successfully!")
+        # File security validation
+        file_size_mb = uploaded.size / (1024 * 1024)
+        if file_size_mb > 200:
+            st.error(f"⚠️ File too large ({file_size_mb:.1f}MB). Maximum size: 200MB")
+            uploaded = None
+        else:
+            # Validate file extension
+            allowed_extensions = ['.csv', '.xlsx', '.xls', '.json']
+            file_extension = os.path.splitext(uploaded.name)[1].lower()
+            
+            if file_extension not in allowed_extensions:
+                st.error(f"⚠️ Invalid file type: {file_extension}. Allowed: {', '.join(allowed_extensions)}")
+                uploaded = None
+            else:
+                # Calculate file hash for integrity
+                file_content = uploaded.read()
+                file_hash = hashlib.sha256(file_content).hexdigest()[:16]
+                uploaded.seek(0)  # Reset file pointer
+                
+                st.success(f"✅ {uploaded.name} uploaded successfully!")
     
     st.markdown("---")
     
@@ -165,9 +238,29 @@ with st.sidebar:
 
 # Main content
 if uploaded is not None:
-    # Loading section
-    with st.spinner("🔄 Loading and analyzing dataset..."):
-        df, meta = detect_and_load(uploaded, uploaded.name)
+    # Additional security checks
+    try:
+        # Loading section with security logging
+        with st.spinner("🔄 Loading and analyzing dataset..."):
+            # Log file access attempt
+            st.session_state.last_file_access = time.time()
+            
+            # Validate file content before processing
+            if uploaded.size == 0:
+                st.error("⚠️ Empty file detected. Please upload a valid dataset.")
+                st.stop()
+            
+            df, meta = detect_and_load(uploaded, uploaded.name)
+            
+            # Validate dataframe
+            if df is None or df.empty:
+                st.error("⚠️ Invalid dataset. Please check your file format.")
+                st.stop()
+                
+    except Exception as e:
+        st.error(f"⚠️ Security Error: {str(e)}")
+        st.info("🔒 File processing blocked due to security concerns.")
+        st.stop()
     
     # Success message
     st.markdown(f"""
@@ -671,7 +764,7 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-# Footer with About Us and Security Features (always visible)
+# Clean footer without security banners
 st.markdown("---")
 
 # About Us Section
@@ -693,7 +786,7 @@ with col1:
     st.write("• 🎨 Professional Visualizations")
 
 with col2:
-    st.markdown("### 🔒 Security & Privacy Features")
+    st.markdown("### 🔒 Privacy & Security")
     st.write("• 🛡️ **No Data Storage:** Your data is processed in-memory only")
     st.write("• 🔐 **Local Processing:** All analysis runs on your local machine")
     st.write("• 🚫 **No External APIs:** No data sent to third-party services")
