@@ -72,13 +72,12 @@ st.markdown("""
     /* Hide the "deployed on streamlit cloud" banner */
     .stApp > div[data-testid="stDecoration"] {display: none;}
     
-    /* Hide only specific toolbar elements but keep menu */
-    .stApp > div[data-testid="stToolbar"] > div:not(:first-child) {display: none !important;}
-    
-    /* Hide specific buttons by text content */
-    .stApp button:contains("Share") {display: none !important;}
-    .stApp button:contains("⭐") {display: none !important;}
-    .stApp a[href*="github.com"] {display: none !important;}
+    /* Hide Streamlit header right-side actions (Share, GitHub, Star, three-dots) but keep left menu */
+    /* Keep the first child (hamburger/menu) and hide the rest in the toolbar */
+    header [data-testid="stToolbar"] > div:not(:first-child) {display: none !important;}
+    /* Additional fallbacks for different Streamlit DOM structures */
+    .stApp header div[data-testid="stToolbar"] > div:nth-child(2) {display: none !important;}
+    .stApp header div[data-testid="stToolbar"] > div:nth-child(3) {display: none !important;}
     
     .main-header {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
