@@ -11,7 +11,7 @@ from src.profiling import compute_overview
 from src.cleaning import auto_clean
 from src.eda import generate_eda
 from src.insights import generate_insights
-from src.exports import export_excel_with_summary, export_powerbi_csv, export_powerbi_bundle, export_pdf_report
+from src.exports import export_excel_with_summary, export_powerbi_csv, export_powerbi_bundle, export_pdf_report, export_tableau_bundle
 from src.nlqa import answer_question
 
 # Security configuration
@@ -522,7 +522,7 @@ with center:
                 <span style="background: #e5e7eb; padding: 0.25rem 0.5rem; border-radius: 6px; margin: 0 0.25rem;">JSON</span>
                 • Max 200MB
             </p>
-        </div>
+    </div>
     </div>
     """, unsafe_allow_html=True)
     uploaded = st.file_uploader("", type=["csv", "xlsx", "xls", "json"], label_visibility="collapsed", key="main_uploader")
@@ -533,13 +533,15 @@ output_powerbi = True
 output_pdf = True
 
 # Export options toggles in main area
-opt_col1, opt_col2, opt_col3 = st.columns(3)
+opt_col1, opt_col2, opt_col3, opt_col4 = st.columns(4)
 with opt_col1:
     output_excel = st.checkbox("📊 Excel Report (cleaned data + summary + charts)", value=True)
 with opt_col2:
     output_powerbi = st.checkbox("🔗 Power BI Bundle (CSV + charts ZIP)", value=True)
 with opt_col3:
     output_pdf = st.checkbox("📄 PDF Report (professional report with charts)", value=True)
+with opt_col4:
+    output_tableau = st.checkbox("📦 Tableau Bundle (CSV + charts ZIP)", value=True)
 
 # Main content
 if uploaded is not None:
@@ -650,7 +652,7 @@ if uploaded is not None:
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
                     <h3 style="color: #2563eb; margin: 0; font-size: 1rem; font-weight: 600;">❌ Missing</h3>
                     <div style="background: #fef3c7; color: #d97706; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">QUALITY</div>
-                </div>
+            </div>
                 <h2 style="color: #1f2937; margin: 0; font-size: 2rem; font-weight: 700;">{:,}</h2>
                 <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.85rem;">{:.1f}% of total values</p>
             </div>
@@ -975,7 +977,7 @@ if uploaded is not None:
         base_name = os.path.splitext(uploaded.name)[0]
 
         # Export buttons in columns
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         if output_excel:
             with col1:
@@ -1024,6 +1026,23 @@ if uploaded is not None:
                         st.success("✅ PDF report ready!")
                 except Exception as e:
                     st.error(f"❌ Error generating PDF: {str(e)}")
+
+        # Tableau bundle export (CSV + optional charts)
+        if 'output_tableau' in locals() and output_tableau:
+            with col4:
+                try:
+                    with st.spinner("📦 Preparing Tableau bundle..."):
+                        tableau_bytes = export_tableau_bundle(clean_df, figs=figs)
+                        st.download_button(
+                            label="📦 Download Tableau ZIP",
+                            data=tableau_bytes,
+                            file_name=f"{base_name}_{timestamp}_tableau.zip",
+                            mime="application/zip",
+                            use_container_width=True
+                        )
+                        st.success("✅ Tableau bundle ready!")
+                except Exception as e:
+                    st.error(f"❌ Error generating Tableau bundle: {str(e)}")
         
         st.markdown("</div>", unsafe_allow_html=True)
         

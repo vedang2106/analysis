@@ -78,6 +78,43 @@ def export_powerbi_bundle(df: pd.DataFrame, figs: List[Tuple[str, object]] | Non
 	return zip_buf.read()
 
 
+def export_tableau_bundle(df: pd.DataFrame, figs: List[Tuple[str, object]] | None = None) -> bytes:
+	"""Create a simple Tableau-ready ZIP containing data.csv and optional charts.
+
+	This avoids extra dependencies by using CSV which Tableau imports easily.
+	Structure:
+	  - tableau/data.csv
+	  - tableau/charts/chart_XX.png (optional)
+	  - README.txt with quick import instructions
+	"""
+	zip_buf = io.BytesIO()
+	with zipfile.ZipFile(zip_buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+		# Add CSV in a tableau/ folder
+		csv_buf = io.BytesIO()
+		df.to_csv(csv_buf, index=False)
+		zf.writestr("tableau/data.csv", csv_buf.getvalue())
+
+		# Optional: add charts for reference
+		if figs:
+			for i, (title, fig) in enumerate(figs, start=1):
+				png = _figure_to_png_bytes(fig)
+				name = f"tableau/charts/chart_{i:02d}.png"
+				zf.writestr(name, png)
+
+		# Include a small README with steps
+		readme = (
+			"Tableau Import Instructions\n\n"
+			"1) Open Tableau Desktop or Tableau Public.\n"
+			"2) Choose 'Text file' as a data source and select tableau/data.csv.\n"
+			"3) Drag sheets to the canvas and start building visuals.\n"
+			"4) Optional: Use charts in tableau/charts/ as references.\n"
+		)
+		zf.writestr("tableau/README.txt", readme)
+
+	zip_buf.seek(0)
+	return zip_buf.read()
+
+
 def export_pdf_report(title: str, overview: Dict, cleaning_report: Dict, insights_text: str, figs: List[Tuple[str, object]] | None = None) -> bytes:
 	buffer = io.BytesIO()
 	c = canvas.Canvas(buffer, pagesize=A4)
