@@ -21,7 +21,7 @@ def _figure_to_png_bytes(fig) -> bytes:
 
 def export_excel_with_summary(df: pd.DataFrame, overview: Dict, cleaning_report: Dict, insights_text: str, file_basename: str, figs: List[Tuple[str, object]] | None = None) -> bytes:
 	buffer = io.BytesIO()
-	with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+	with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
 		df.to_excel(writer, index=False, sheet_name="CleanedData")
 		# Summary sheet
 		summary_rows = []
@@ -39,17 +39,26 @@ def export_excel_with_summary(df: pd.DataFrame, overview: Dict, cleaning_report:
 
 		# Charts sheet with embedded PNGs
 		if figs:
+			# Create charts sheet with openpyxl
+			from openpyxl import Workbook
+			from openpyxl.drawing.image import Image
+			
 			workbook = writer.book
-			charts_ws = workbook.add_worksheet("Charts")
-			writer.sheets["Charts"] = charts_ws
+			charts_ws = workbook.create_sheet("Charts")
+			
 			row = 1
 			for idx, (title, fig) in enumerate(figs, start=1):
+				# Write title
+				charts_ws.cell(row=row, column=1, value=str(title))
+				
+				# Add chart image
 				png_bytes = _figure_to_png_bytes(fig)
-				stream = io.BytesIO(png_bytes)
-				# Write title above image
-				charts_ws.write(row - 1, 0, str(title))
-				charts_ws.insert_image(row, 0, f"chart_{idx}.png", {"image_data": stream, "x_scale": 1.0, "y_scale": 1.0})
-				row += 35  # space between images; adjust as needed
+				img_stream = io.BytesIO(png_bytes)
+				img = Image(img_stream)
+				img.width = 400
+				img.height = 300
+				charts_ws.add_image(img, f'B{row + 1}')
+				row += 40  # space between images
 	buffer.seek(0)
 	return buffer.read()
 
