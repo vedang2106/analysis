@@ -50,7 +50,7 @@ st.set_page_config(
     page_title="Data Analyst Automation",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
     menu_items={
         'Get Help': None,
         'Report a bug': None,
@@ -58,107 +58,387 @@ st.set_page_config(
     }
 )
 
+# Auto-enable embed mode on Streamlit Cloud (keeps localhost unchanged)
+st.markdown("""
+<script>
+(function() {
+  try {
+    const isCloud = location.hostname.endsWith('streamlit.app');
+    if (!isCloud) return; // only enforce on hosted site
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('embed') !== 'true') {
+      url.searchParams.set('embed', 'true');
+      // Redirect the TOP document (Streamlit Cloud shell) if we're inside an iframe
+      if (window.top && window.top !== window.self) {
+        try { window.top.location.replace(url.toString()); }
+        catch (e) { window.location.replace(url.toString()); }
+      } else {
+        window.location.replace(url.toString());
+      }
+    }
+  } catch (e) { /* no-op */ }
+})();
+</script>
+""", unsafe_allow_html=True)
+
 # Custom CSS for better styling
 st.markdown("""
 <style>
+    /* Modern Professional Color System */
+    :root {
+        --primary: #2563eb;         /* Modern Blue */
+        --primary-dark: #1d4ed8;    /* Darker Blue */
+        --secondary: #f8fafc;       /* Light Gray */
+        --accent: #10b981;          /* Success Green */
+        --accent-orange: #f59e0b;   /* Warning Orange */
+        --text: #1f2937;            /* Dark Gray */
+        --text-light: #6b7280;      /* Medium Gray */
+        --card-bg: #ffffff;         /* Pure White */
+        --card-border: #e5e7eb;     /* Light Border */
+        --shadow: rgba(0, 0, 0, 0.1);
+        --shadow-lg: rgba(0, 0, 0, 0.15);
+        --gradient-primary: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        --gradient-accent: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
     /* Hide Streamlit Cloud UI elements */
     footer {visibility: hidden;}
-    
-    /* Hide share button and GitHub link */
     .stDeployButton {display: none;}
-    
-    /* Hide the "made with streamlit" footer */
     .stApp > footer {display: none;}
-    
-    /* Hide the "deployed on streamlit cloud" banner */
     .stApp > div[data-testid="stDecoration"] {display: none;}
-    
-    /* Hide Streamlit header right-side actions (Share, GitHub, Star, three-dots) but keep left menu */
-    /* Keep the first child (hamburger/menu) and hide the rest in the toolbar */
     header [data-testid="stToolbar"] > div:not(:first-child) {display: none !important;}
-    /* Additional fallbacks for different Streamlit DOM structures */
     .stApp header div[data-testid="stToolbar"] > div:nth-child(2) {display: none !important;}
     .stApp header div[data-testid="stToolbar"] > div:nth-child(3) {display: none !important;}
     
+    /* Hide sidebar for clean layout */
+    [data-testid="stSidebar"],
+    [data-testid="stSidebarNav"],
+    [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+    .stApp [data-testid="stAppViewContainer"] > .main { width: 100% !important; }
+    
+    /* Enhanced Header Design */
     .main-header {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 15px;
-        color: white;
+        background: var(--gradient-primary);
+        padding: 2.5rem 2rem;
+        border-radius: 20px;
+        color: #fff;
         text-align: center;
         margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
+        position: relative;
+        overflow: hidden;
     }
+    
+    .main-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+    }
+    
+    .main-header h1 {
+        font-size: 2.5rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 0.5rem !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .main-header p {
+        font-size: 1.1rem !important;
+        opacity: 0.95 !important;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Modern Card Design */
     .metric-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        border: 1px solid #e0e0e0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .section-card {
-        background: white;
-        padding: 2rem;
-        border-radius: 15px;
-        border: 1px solid #e0e0e0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin-bottom: 2rem;
-    }
-    .success-box {
-        background: linear-gradient(90deg, #56ab2f 0%, #a8e6cf 100%);
-        color: white;
-        padding: 1rem;
-        border-radius: 10px;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .info-box {
-        background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
-        padding: 1rem;
-        border-radius: 10px;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .stButton > button {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 25px;
-        padding: 0.5rem 2rem;
-        font-weight: bold;
+        background: var(--card-bg);
+        padding: 1.75rem;
+        border-radius: 16px;
+        border: 1px solid var(--card-border);
+        box-shadow: 0 4px 12px var(--shadow);
         transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
     }
-    .stButton > button:hover {
+    
+    .metric-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        box-shadow: 0 8px 24px var(--shadow-lg);
     }
-    .upload-area {
-        border: 2px dashed #667eea;
-        border-radius: 15px;
+    
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+    }
+    
+    .section-card {
+        background: var(--card-bg);
         padding: 2rem;
-        text-align: center;
-        background: #f8f9ff;
+        border-radius: 20px;
+        border: 1px solid var(--card-border);
+        box-shadow: 0 4px 16px var(--shadow);
+        margin-bottom: 2rem;
+        position: relative;
     }
     
-    /* Security warning styles */
-    .security-warning {
-        background: linear-gradient(90deg, #ff6b6b 0%, #ee5a24 100%);
-        color: white;
-        padding: 1rem;
-        border-radius: 10px;
-        text-align: center;
-        margin-bottom: 1rem;
-        border: 2px solid #c44569;
+    .section-card h2 {
+        color: var(--text) !important;
+        font-size: 1.75rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 1rem !important;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
     
-    .security-info {
-        background: linear-gradient(90deg, #00b894 0%, #00a085 100%);
-        color: white;
-        padding: 1rem;
-        border-radius: 10px;
+    /* Enhanced Status Boxes */
+    .success-box {
+        background: var(--gradient-accent);
+        color: #fff;
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
         text-align: center;
-        margin-bottom: 1rem;
-        border: 2px solid #00a085;
+        margin-bottom: 2rem;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        border: none;
+    }
+    
+    .info-box {
+        background: var(--gradient-primary);
+        color: #fff;
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+        border: none;
+    }
+    
+    /* Modern Button Styling */
+    .stButton > button {
+        background: var(--gradient-primary) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.75rem 1.5rem !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important;
+        background: var(--primary-dark) !important;
+    }
+    
+    .stButton > button:active {
+        transform: translateY(0) !important;
+    }
+    
+    /* Enhanced Upload Area */
+    .upload-area {
+        border: 2px dashed var(--primary) !important;
+        border-radius: 20px !important;
+        padding: 2.5rem !important;
+        text-align: center !important;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+        transition: all 0.3s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+    
+    .upload-area:hover {
+        border-color: var(--primary-dark) !important;
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 24px var(--shadow-lg) !important;
+    }
+    
+    .upload-area h4 {
+        color: var(--primary) !important;
+        font-size: 1.3rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Enhanced Input Styling */
+    .stTextInput > div > div > input {
+        border-radius: 12px !important;
+        border: 2px solid var(--card-border) !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    }
+    
+    /* Enhanced Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0.5rem;
+        background: var(--secondary);
+        padding: 0.5rem;
+        border-radius: 12px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: transparent !important;
+        border-radius: 8px !important;
+        padding: 0.75rem 1.5rem !important;
+        font-weight: 500 !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: var(--card-bg) !important;
+        color: var(--primary) !important;
+        box-shadow: 0 2px 8px var(--shadow) !important;
+    }
+    
+    /* Enhanced Checkboxes */
+    .stCheckbox > label {
+        background: var(--card-bg) !important;
+        padding: 1rem !important;
+        border-radius: 12px !important;
+        border: 1px solid var(--card-border) !important;
+        transition: all 0.3s ease !important;
+        cursor: pointer !important;
+    }
+    
+    .stCheckbox > label:hover {
+        border-color: var(--primary) !important;
+        box-shadow: 0 2px 8px var(--shadow) !important;
+    }
+    
+    /* Enhanced Expanders */
+    .streamlit-expanderHeader {
+        background: var(--secondary) !important;
+        border-radius: 12px !important;
+        padding: 1rem 1.5rem !important;
+        font-weight: 600 !important;
+        border: 1px solid var(--card-border) !important;
+    }
+    
+    .streamlit-expanderContent {
+        background: var(--card-bg) !important;
+        border: 1px solid var(--card-border) !important;
+        border-top: none !important;
+        border-radius: 0 0 12px 12px !important;
+        padding: 1.5rem !important;
+    }
+    
+    /* Enhanced Download Buttons */
+    .stDownloadButton > button {
+        background: var(--gradient-accent) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.75rem 1.5rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+        width: 100% !important;
+    }
+    
+    .stDownloadButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+    }
+    
+    /* Enhanced Dataframe Styling */
+    .stDataFrame {
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 12px var(--shadow) !important;
+    }
+    
+    /* Enhanced Spinner */
+    .stSpinner > div {
+        border-color: var(--primary) !important;
+    }
+    
+    /* Enhanced Alert Boxes */
+    .stAlert {
+        border-radius: 12px !important;
+        border: none !important;
+        box-shadow: 0 4px 12px var(--shadow) !important;
+    }
+    
+    .stSuccess {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: #fff !important;
+    }
+    
+    .stInfo {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+        color: #fff !important;
+    }
+    
+    .stError {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        color: #fff !important;
+    }
+    
+    /* Typography Enhancements */
+    .stApp, .stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, .stApp li, .stApp label, .stApp span {
+        color: var(--text) !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    }
+    
+    /* Enhanced Progress Indicators */
+    .stProgress > div > div {
+        background: var(--gradient-primary) !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .main-header {
+            padding: 2rem 1.5rem !important;
+        }
+        
+        .main-header h1 {
+            font-size: 2rem !important;
+        }
+        
+        .section-card {
+            padding: 1.5rem !important;
+        }
+        
+        .metric-card {
+            padding: 1.25rem !important;
+        }
+    }
+    
+    /* Loading Animation */
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .loading {
+        animation: pulse 2s infinite;
+    }
+    
+    /* Smooth Transitions */
+    * {
+        transition: all 0.3s ease !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -221,66 +501,45 @@ st.markdown("""
 st.markdown("""
 <div class="main-header">
     <h1>📊 Data Analyst Automation Tool</h1>
-    <p style="font-size: 1.2rem; margin: 0;">Upload a dataset (CSV, Excel, JSON), auto-analyze, and export comprehensive reports</p>
-    <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0; opacity: 0.8;">💡 Use the menu (☰) in the top-left to access upload options</p>
+    <p style="font-size: 1.2rem; margin: 0.5rem 0;">Transform your datasets into actionable insights with automated analysis, visualization, and reporting</p>
+    <p style="font-size: 0.9rem; margin: 0.75rem 0 0 0; opacity: 0.9;">💡 Professional-grade data analysis • Export to Excel, Power BI & PDF • Natural language Q&A</p>
 </div>
 """, unsafe_allow_html=True)
 
+# Centered Upload Section (replaces sidebar uploader)
+uploaded = None
+left, center, right = st.columns([1, 2, 1])
+with center:
+    st.markdown("""
+    <div class="upload-area">
+        <div style="margin-bottom: 1rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">📁</div>
+            <h4 style="margin: 0 0 0.5rem 0; color: #2563eb; font-size: 1.4rem; font-weight: 600;">Upload Your Dataset</h4>
+            <p style="margin: 0 0 0.5rem 0; color: #6b7280; font-weight: 500; font-size: 1rem;">Drag and drop your file here or click to browse</p>
+            <p style="font-size: 0.85rem; color: #9ca3af; margin: 0;">
+                <span style="background: #e5e7eb; padding: 0.25rem 0.5rem; border-radius: 6px; margin: 0 0.25rem;">CSV</span>
+                <span style="background: #e5e7eb; padding: 0.25rem 0.5rem; border-radius: 6px; margin: 0 0.25rem;">XLSX</span>
+                <span style="background: #e5e7eb; padding: 0.25rem 0.5rem; border-radius: 6px; margin: 0 0.25rem;">JSON</span>
+                • Max 200MB
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    uploaded = st.file_uploader("", type=["csv", "xlsx", "xls", "json"], label_visibility="collapsed", key="main_uploader")
+
 # Professional sidebar with enhanced styling
-with st.sidebar:
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 15px; color: white; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        <h3 style="margin: 0; font-size: 1.3rem;">⚙️ Analysis Options</h3>
-        <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.9rem;">Configure your data analysis settings</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Professional file upload section
-    st.markdown("""
-    <div class="upload-area" style="border: 2px dashed #667eea; border-radius: 15px; padding: 2rem; text-align: center; background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%); margin-bottom: 1.5rem;">
-        <h4 style="margin: 0 0 1rem 0; color: #667eea; font-size: 1.2rem;">📁 Upload Dataset</h4>
-        <p style="margin: 0 0 0.5rem 0; color: #555; font-weight: 500;">Drag and drop or browse to upload</p>
-        <p style="font-size: 0.85rem; color: #777; margin: 0;">Limit: 200MB • Formats: CSV, XLSX, XLS, JSON</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    uploaded = st.file_uploader("", type=["csv", "xlsx", "xls", "json"], label_visibility="collapsed")
-    
-    if uploaded:
-        # File security validation
-        file_size_mb = uploaded.size / (1024 * 1024)
-        if file_size_mb > 200:
-            st.error(f"⚠️ File too large ({file_size_mb:.1f}MB). Maximum size: 200MB")
-            uploaded = None
-        else:
-            # Validate file extension
-            allowed_extensions = ['.csv', '.xlsx', '.xls', '.json']
-            file_extension = os.path.splitext(uploaded.name)[1].lower()
-            
-            if file_extension not in allowed_extensions:
-                st.error(f"⚠️ Invalid file type: {file_extension}. Allowed: {', '.join(allowed_extensions)}")
-                uploaded = None
-            else:
-                # Calculate file hash for integrity
-                file_content = uploaded.read()
-                file_hash = hashlib.sha256(file_content).hexdigest()[:16]
-                uploaded.seek(0)  # Reset file pointer
-                
-                st.success(f"✅ {uploaded.name} uploaded successfully!")
-    
-    st.markdown("---")
-    
-    # Professional export options section
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%); padding: 1.5rem; border-radius: 15px; border: 1px solid #e0e0e0; margin-bottom: 1.5rem;">
-        <h4 style="margin: 0 0 1rem 0; color: #667eea; font-size: 1.1rem;">📤 Export Options</h4>
-        <p style="margin: 0 0 1rem 0; color: #666; font-size: 0.9rem;">Select the formats you'd like to export your analysis</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    output_excel = st.checkbox("📊 Excel Report (cleaned data + summary + charts)", value=True, help="Comprehensive Excel file with all analysis results")
-    output_powerbi = st.checkbox("🔗 Power BI Bundle (CSV + charts ZIP)", value=True, help="Ready-to-use Power BI files with visualizations")
-    output_pdf = st.checkbox("📄 PDF Report (professional report with charts)", value=True, help="Professional PDF report with all findings")
+output_excel = True
+output_powerbi = True
+output_pdf = True
+
+# Export options toggles in main area
+opt_col1, opt_col2, opt_col3 = st.columns(3)
+with opt_col1:
+    output_excel = st.checkbox("📊 Excel Report (cleaned data + summary + charts)", value=True)
+with opt_col2:
+    output_powerbi = st.checkbox("🔗 Power BI Bundle (CSV + charts ZIP)", value=True)
+with opt_col3:
+    output_pdf = st.checkbox("📄 PDF Report (professional report with charts)", value=True)
 
 # Main content
 if uploaded is not None:
@@ -311,8 +570,10 @@ if uploaded is not None:
     # Success message
     st.markdown(f"""
     <div class="success-box">
-        <h3>🎉 Dataset Loaded Successfully!</h3>
-        <p><strong>{uploaded.name}</strong> • Shape: {df.shape[0]} rows × {df.shape[1]} columns</p>
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
+        <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 600;">Dataset Loaded Successfully!</h3>
+        <p style="margin: 0; font-size: 1.1rem; opacity: 0.95;"><strong>{uploaded.name}</strong></p>
+        <p style="margin: 0.25rem 0 0 0; font-size: 1rem; opacity: 0.9;">{df.shape[0]:,} rows × {df.shape[1]} columns • {uploaded.size / 1024 / 1024:.1f} MB</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -360,34 +621,51 @@ if uploaded is not None:
         with col1:
             st.markdown("""
             <div class="metric-card">
-                <h3 style="color: #667eea; margin: 0;">📊 Rows</h3>
-                <h2 style="color: #764ba2; margin: 0;">{}</h2>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <h3 style="color: #2563eb; margin: 0; font-size: 1rem; font-weight: 600;">📊 Total Rows</h3>
+                    <div style="background: #dbeafe; color: #2563eb; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">DATA</div>
+                </div>
+                <h2 style="color: #1f2937; margin: 0; font-size: 2rem; font-weight: 700;">{:,}</h2>
+                <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.85rem;">Records in dataset</p>
             </div>
             """.format(overview["num_rows"]), unsafe_allow_html=True)
         
         with col2:
             st.markdown("""
             <div class="metric-card">
-                <h3 style="color: #667eea; margin: 0;">📋 Columns</h3>
-                <h2 style="color: #764ba2; margin: 0;">{}</h2>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <h3 style="color: #2563eb; margin: 0; font-size: 1rem; font-weight: 600;">📋 Columns</h3>
+                    <div style="background: #dcfce7; color: #16a34a; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">FIELDS</div>
+                </div>
+                <h2 style="color: #1f2937; margin: 0; font-size: 2rem; font-weight: 700;">{}</h2>
+                <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.85rem;">Data attributes</p>
             </div>
             """.format(overview["num_cols"]), unsafe_allow_html=True)
         
         with col3:
             missing_total = sum(overview["missing_counts"].values())
+            missing_pct = (missing_total / (overview["num_rows"] * overview["num_cols"]) * 100) if overview["num_rows"] > 0 else 0
             st.markdown("""
             <div class="metric-card">
-                <h3 style="color: #667eea; margin: 0;">❌ Missing</h3>
-                <h2 style="color: #764ba2; margin: 0;">{}</h2>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <h3 style="color: #2563eb; margin: 0; font-size: 1rem; font-weight: 600;">❌ Missing</h3>
+                    <div style="background: #fef3c7; color: #d97706; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">QUALITY</div>
+                </div>
+                <h2 style="color: #1f2937; margin: 0; font-size: 2rem; font-weight: 700;">{:,}</h2>
+                <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.85rem;">{:.1f}% of total values</p>
             </div>
-            """.format(missing_total), unsafe_allow_html=True)
+            """.format(missing_total, missing_pct), unsafe_allow_html=True)
         
         with col4:
             numeric_cols = len([col for col in df.columns if df[col].dtype in ['int64', 'float64']])
             st.markdown("""
             <div class="metric-card">
-                <h3 style="color: #667eea; margin: 0;">🔢 Numeric</h3>
-                <h2 style="color: #764ba2; margin: 0;">{}</h2>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <h3 style="color: #2563eb; margin: 0; font-size: 1rem; font-weight: 600;">🔢 Numeric</h3>
+                    <div style="background: #e0e7ff; color: #4f46e5; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">TYPES</div>
+                </div>
+                <h2 style="color: #1f2937; margin: 0; font-size: 2rem; font-weight: 700;">{}</h2>
+                <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.85rem;">Quantitative fields</p>
             </div>
             """.format(numeric_cols), unsafe_allow_html=True)
         
@@ -647,11 +925,17 @@ if uploaded is not None:
                 insights_text = generate_insights(insights_df)
                 st.success("✅ Insights generated successfully!")
                 
-                # Display insights in a more prominent way
                 st.markdown("""
-                <div style="background: #f8f9ff; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #667eea;">
-                    <h4>🔍 Key Findings:</h4>
-                    <p style="font-size: 1.1rem; margin: 0;">{}</p>
+                <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 2rem; border-radius: 16px; border-left: 5px solid #2563eb; margin: 1rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div style="background: #2563eb; color: white; padding: 0.5rem; border-radius: 8px; margin-right: 1rem;">
+                            <span style="font-size: 1.2rem;">🔍</span>
+                        </div>
+                        <h4 style="margin: 0; color: #1f2937; font-size: 1.3rem; font-weight: 600;">Key Insights & Findings</h4>
+                    </div>
+                    <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <p style="font-size: 1.1rem; line-height: 1.6; margin: 0; color: #374151;">{}</p>
+                    </div>
                 </div>
                 """.format(insights_text), unsafe_allow_html=True)
                 
@@ -774,94 +1058,33 @@ if uploaded is not None:
         insights_text = "Unable to generate insights due to processing error."
         figs = []
 
-else:
-    # Professional welcome message
-    st.markdown("""
-    <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 20px; color: white; text-align: center; margin-bottom: 2rem; box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);">
-        <h2 style="margin: 0 0 1rem 0; font-size: 2rem;">🚀 Welcome to Data Analyst Automation!</h2>
-        <p style="font-size: 1.2rem; margin: 0 0 1rem 0; opacity: 0.9;">Upload a dataset to get started with automated analysis</p>
-        <p style="font-size: 1rem; margin: 0; opacity: 0.8;">Professional-grade insights in minutes, not hours</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Feature highlights
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("""
-        <div class="metric-card" style="background: white; padding: 2rem; border-radius: 15px; border: 1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s ease;">
-            <h3 style="color: #667eea; margin: 0 0 1rem 0; font-size: 1.3rem;">🔍 Auto-Analysis</h3>
-            <p style="color: #666; margin: 0; line-height: 1.5;">Automatic data profiling, cleaning, and insights generation</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div class="metric-card" style="background: white; padding: 2rem; border-radius: 15px; border: 1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s ease;">
-            <h3 style="color: #667eea; margin: 0 0 1rem 0; font-size: 1.3rem;">💬 Smart Q&A</h3>
-            <p style="color: #666; margin: 0; line-height: 1.5;">Ask questions about your data in natural language</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown("""
-        <div class="metric-card" style="background: white; padding: 2rem; border-radius: 15px; border: 1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s ease;">
-            <h3 style="color: #667eea; margin: 0 0 1rem 0; font-size: 1.3rem;">📤 Multi-Format Export</h3>
-            <p style="color: #666; margin: 0; line-height: 1.5;">Export to Excel, Power BI, and PDF with charts</p>
-        </div>
-        """, unsafe_allow_html=True)
+ 
 
 # Clean footer without security banners
 st.markdown("---")
 
-# About Us Section
-st.markdown("## 🏢 About Data Analyst Automation Platform")
-
-# Mission and Features
-col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown("### 🎯 Our Mission")
-    st.write("We provide enterprise-grade data analysis automation that transforms raw data into actionable insights. Our platform empowers analysts, business users, and data scientists to extract maximum value from their datasets.")
-    
-    st.markdown("### 🚀 Key Features")
-    st.write("• 🔍 Automated Data Profiling & Cleaning")
-    st.write("• 📊 Intelligent Chart Generation")
-    st.write("• 💬 Natural Language Q&A")
-    st.write("• 📤 Multi-Format Export (Excel, Power BI, PDF)")
-    st.write("• ⚡ Large Dataset Optimization")
-    st.write("• 🎨 Professional Visualizations")
-
-with col2:
-    st.markdown("### 🔒 Privacy & Security")
-    st.write("• 🛡️ **No Data Storage:** Your data is processed in-memory only")
-    st.write("• 🔐 **Local Processing:** All analysis runs on your local machine")
-    st.write("• 🚫 **No External APIs:** No data sent to third-party services")
-    st.write("• 💾 **Secure Exports:** Files generated locally with your data")
-    st.write("• 🔒 **Privacy First:** Zero data retention or tracking")
-    st.write("• ⚡ **Offline Capable:** Works without internet connection")
-    
-    st.markdown("### 📚 Available Chart Types")
-    st.write("• 📊 Distribution, Box, Violin Plots")
-    st.write("• 🔍 Scatter Matrix & Correlation Heatmaps")
-    st.write("• ⏰ Time Series Analysis")
-    st.write("• 📋 Categorical Analysis (Bar/Pie Charts)")
-    st.write("• 🎯 Pair Plot Matrices")
-
-# Chart Display Features
-st.markdown("### 🎨 Chart Display Features")
-col3, col4, col5 = st.columns(3)
-with col3:
-    st.write("• 📱 Responsive 2-column layout")
-    st.write("• 🔍 Clear chart titles and separators")
-with col4:
-    st.write("• ⚡ Optimized for large datasets")
-    st.write("• 🎯 User-selectable chart types")
-with col5:
-    st.write("• 📊 Smart chart filtering")
-    st.write("• 🎨 Professional styling")
+with st.expander("About this app", expanded=False):
+    colA, colB = st.columns(2)
+    with colA:
+        st.write("• Automated profiling and cleaning")
+        st.write("• Smart chart generation")
+        st.write("• Natural language Q&A")
+    with colB:
+        st.write("• Local processing, no data leaves your machine")
+        st.write("• Export to Excel, Power BI, PDF")
+        st.write("• Optimized for large datasets")
 
 # Footer info
 st.markdown("---")
-st.markdown("**Built with ❤️ using Python, Streamlit, Pandas, and Matplotlib**")
-st.caption("Version 2.0 • Enterprise-Ready Data Analysis Platform")
+st.markdown("""
+<div style="text-align: center; padding: 2rem 0; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 16px; margin-top: 2rem;">
+    <h4 style="color: #2563eb; margin: 0 0 1rem 0; font-weight: 600;">Built with Modern Technology Stack</h4>
+    <p style="color: #6b7280; margin: 0; font-size: 0.95rem;">
+        <span style="background: #dbeafe; color: #2563eb; padding: 0.25rem 0.75rem; border-radius: 20px; margin: 0 0.25rem; font-weight: 500;">Python</span>
+        <span style="background: #dcfce7; color: #16a34a; padding: 0.25rem 0.75rem; border-radius: 20px; margin: 0 0.25rem; font-weight: 500;">Streamlit</span>
+        <span style="background: #fef3c7; color: #d97706; padding: 0.25rem 0.75rem; border-radius: 20px; margin: 0 0.25rem; font-weight: 500;">Pandas</span>
+        <span style="background: #e0e7ff; color: #4f46e5; padding: 0.25rem 0.75rem; border-radius: 20px; margin: 0 0.25rem; font-weight: 500;">Matplotlib</span>
+    </p>
+    <p style="color: #9ca3af; margin: 0.75rem 0 0 0; font-size: 0.85rem;">Version 2.0 • Enterprise-Ready Data Analysis Platform</p>
+</div>
+""", unsafe_allow_html=True)
