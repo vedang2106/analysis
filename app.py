@@ -4,6 +4,7 @@ from datetime import datetime
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from src.loaders import detect_and_load
 from src.profiling import compute_overview
@@ -160,6 +161,58 @@ st.markdown("""
         border: 2px solid #00a085;
     }
 </style>
+""", unsafe_allow_html=True)
+
+# Robust JS to hide header right-side controls (Share, GitHub, Star, three-dots)
+st.markdown("""
+<script>
+(function() {
+  function hideHeaderActions() {
+    try {
+      const doc = window.parent ? window.parent.document : document;
+      const header = doc.querySelector('header');
+      if (!header) return;
+      const toolbar = header.querySelector('[data-testid="stToolbar"]') || header;
+
+      const candidates = Array.from(toolbar.querySelectorAll('a, button, div, svg'));
+      candidates.forEach(function(el) {
+        const text = (el.innerText || '').trim().toLowerCase();
+        const label = (el.getAttribute('aria-label') || '').toLowerCase();
+        const title = (el.getAttribute('title') || '').toLowerCase();
+        const href = (el.getAttribute('href') || '').toLowerCase();
+
+        const isAction =
+          /share|github|star|more|overflow/.test(text) ||
+          /share|github|star|more|overflow/.test(label) ||
+          /share|github|star|more|overflow/.test(title) ||
+          (href && href.includes('github.com'));
+
+        if (isAction) {
+          let node = el;
+          // bubble up to clickable container
+          for (let i = 0; i < 4 && node && node !== toolbar; i++) {
+            if (node.tagName === 'A' || node.tagName === 'BUTTON') break;
+            node = node.parentElement;
+          }
+          if (node && node !== toolbar) {
+            node.style.setProperty('display', 'none', 'important');
+          }
+        }
+      });
+    } catch (e) {
+      // no-op
+    }
+  }
+
+  // Run now and also on future DOM changes
+  hideHeaderActions();
+  const doc = window.parent ? window.parent.document : document;
+  const observer = new MutationObserver(hideHeaderActions);
+  observer.observe(doc.body, { childList: true, subtree: true });
+  // Periodic fallback
+  setInterval(hideHeaderActions, 1500);
+})();
+</script>
 """, unsafe_allow_html=True)
 
 # Security features active in background (no UI display)
