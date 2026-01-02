@@ -12,6 +12,7 @@
   "scripts": {
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
     "start:frontend": "react-scripts start",
+    "start:frontend-only": "react-scripts start",
     "start:backend": "node start-backend.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
