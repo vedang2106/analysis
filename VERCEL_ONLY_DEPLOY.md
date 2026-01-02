@@ -39,11 +39,21 @@ git push
    - Vercel needs to see the entire project structure
 
    **Framework Preset:**
-   - Select "Other" (or leave as auto-detected)
-   - Don't use "Create React App" preset
+   - ⚠️ **IMPORTANT**: Change from "Flask" to **"Other"**
+   - Click the Framework Preset dropdown
+   - Select "Other" (or "No Framework")
+   - Don't use "Flask" or "Create React App" preset
+   - We're using a custom `vercel.json` that handles both frontend and backend
+
+   **Root Directory:**
+   - Should show: `./` (project root) ✅
+   - This is correct - don't change it
+   - **NOT** `frontend`
 
    **Build & Development Settings:**
+   - Click "> Build and Output Settings" to expand
    - **DO NOT** override any settings
+   - Leave all fields empty/default
    - Let `vercel.json` handle everything
    - If you see toggles for Build Command/Output Directory, **turn them OFF**
 
