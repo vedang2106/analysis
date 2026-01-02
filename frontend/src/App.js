@@ -9,7 +9,9 @@ import ChatWithData from './components/ChatWithData';
 import Insights from './components/Insights';
 import Exports from './components/Exports';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Use relative path for Vercel deployment, localhost for development
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api');
 
 // Configure axios with timeout
 axios.defaults.timeout = 300000; // 5 minutes for large file uploads

@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+ENV/
+*.md
+!README.md
+start_*.ps1
+start_*.sh
+Procfile
+runtime.txt
+app.py
+

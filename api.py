@@ -35,7 +35,14 @@ from src.nlqa import answer_question
 app = Flask(__name__)
 
 # Get allowed origins from environment variable or use defaults
-allowed_origins = os.environ.get('ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+# In production (Vercel), allow requests from any origin (handled by Vercel's CORS)
+# In development, use localhost
+default_origins = 'http://localhost:3000,http://127.0.0.1:3000'
+if os.environ.get('VERCEL'):
+    # On Vercel, allow all origins (Vercel handles CORS)
+    allowed_origins = ['*']
+else:
+    allowed_origins = os.environ.get('ALLOWED_ORIGINS', default_origins).split(',')
 
 # Enable CORS for React frontend with proper configuration
 CORS(app, resources={
