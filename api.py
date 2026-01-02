@@ -37,21 +37,36 @@ app = Flask(__name__)
 # Get allowed origins from environment variable or use defaults
 # In production (Vercel), allow requests from any origin (handled by Vercel's CORS)
 # In development, use localhost
-default_origins = 'http://localhost:3000,http://127.0.0.1:3000'
+default_origins = ['http://localhost:3000', 'http://127.0.0.1:3000']
 if os.environ.get('VERCEL'):
     # On Vercel, allow all origins (Vercel handles CORS)
     allowed_origins = ['*']
 else:
-    allowed_origins = os.environ.get('ALLOWED_ORIGINS', default_origins).split(',')
+    env_origins = os.environ.get('ALLOWED_ORIGINS', '')
+    if env_origins:
+        allowed_origins = [origin.strip() for origin in env_origins.split(',')]
+    else:
+        allowed_origins = default_origins
 
 # Enable CORS for React frontend with proper configuration
-CORS(app, resources={
-    r"/api/*": {
-        "origins": allowed_origins,
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "X-Session-ID", "x-session-id"]
-    }
-})
+# Support credentials and all necessary headers
+# automatic_options=True ensures OPTIONS requests are handled automatically
+CORS(app, 
+     resources={
+         r"/api/*": {
+             "origins": allowed_origins,
+             "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+             "allow_headers": ["Content-Type", "X-Session-ID", "x-session-id", "Authorization"],
+             "expose_headers": ["X-Session-ID", "x-session-id"],
+             "supports_credentials": True,
+             "max_age": 3600
+         }
+     },
+     supports_credentials=True,
+     automatic_options=True)
+
+# Flask-CORS will handle CORS headers automatically
+# The after_request is handled by Flask-CORS
 
 # Session management
 sessions = {}
@@ -128,6 +143,11 @@ def health():
 @check_rate_limit
 def upload_file():
     """Upload and load dataset"""
+    # OPTIONS requests are handled by Flask-CORS and decorators skip processing
+    # So if we reach here with OPTIONS, just return empty response (CORS headers added by Flask-CORS)
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    
     try:
         if 'file' not in request.files:
             return jsonify({'error': 'No file provided'}), 400
