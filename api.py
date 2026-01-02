@@ -29,16 +29,7 @@ app = Flask(__name__)
 
 # Get allowed origins from environment variable or use defaults
 # Include common development ports (3000, 3001) for React apps
-# Also allow Vercel domains dynamically
-default_origins = 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001'
-env_origins = os.environ.get('ALLOWED_ORIGINS', default_origins)
-
-# If running on Vercel, automatically allow the Vercel domain
-vercel_url = os.environ.get('VERCEL_URL')
-if vercel_url and vercel_url not in env_origins:
-    env_origins = f"{env_origins},https://{vercel_url}"
-
-allowed_origins = env_origins.split(',')
+allowed_origins = os.environ.get('ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001').split(',')
 
 # Enable CORS for React frontend with proper configuration
 CORS(app, resources={
