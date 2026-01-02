@@ -16,6 +16,13 @@ import base64
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend for server
 import matplotlib.pyplot as plt
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# API Key from .env file - access it using: os.environ.get('API_KEY')
+# Example: api_key = os.environ.get('API_KEY')
 
 from src.loaders import detect_and_load
 from src.profiling import compute_overview

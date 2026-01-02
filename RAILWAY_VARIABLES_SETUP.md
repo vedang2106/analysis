@@ -60,3 +60,5 @@ You're looking at the **backend service** on Railway. You should:
 2. **Add** `ALLOWED_ORIGINS` with your Vercel URL
 3. **Set** `REACT_APP_API_URL` in Vercel instead
 
+
+

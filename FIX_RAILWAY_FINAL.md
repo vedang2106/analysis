@@ -94,3 +94,5 @@ The `-q` flag makes pip install quiet (faster).
 3. **Check Root Directory** - Should be empty (not `frontend/`)
 4. **Try simpler command**: `python api.py` (temporary, to test if file is found)
 
+
+

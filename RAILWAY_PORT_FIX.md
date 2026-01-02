@@ -52,3 +52,5 @@ If you're not sure, try **5000** first (Flask default), then click "Generate Dom
 2. **Update Vercel**: Add environment variable `REACT_APP_API_URL=https://your-railway-url.up.railway.app/api`
 3. **Update Railway CORS**: Add variable `ALLOWED_ORIGINS=https://graphgrover.vercel.app`
 
+
+
