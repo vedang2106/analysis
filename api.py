@@ -75,6 +75,9 @@ def check_session(f):
     """Decorator to check session validity"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # Skip session check for OPTIONS preflight requests
+        if request.method == 'OPTIONS':
+            return f(*args, **kwargs)
         session_id = get_session_id()
         if session_id not in sessions:
             sessions[session_id] = {
@@ -92,6 +95,9 @@ def check_rate_limit(f):
     """Decorator for rate limiting"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # Skip rate limiting for OPTIONS preflight requests
+        if request.method == 'OPTIONS':
+            return f(*args, **kwargs)
         session_id = get_session_id()
         current_time = time.time()
         
@@ -117,7 +123,7 @@ def health():
     return jsonify({'status': 'ok'})
 
 
-@app.route('/api/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST', 'OPTIONS'])
 @check_session
 @check_rate_limit
 def upload_file():

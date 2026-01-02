@@ -91,10 +91,13 @@ function App() {
       };
 
       let response;
+      const fullUrl = `${API_BASE_URL}${endpoint}`;
+      console.log(`Making ${method} request to: ${fullUrl}`);
+      
       if (method === 'GET') {
-        response = await axios.get(`${API_BASE_URL}${endpoint}`, requestConfig);
+        response = await axios.get(fullUrl, requestConfig);
       } else if (method === 'POST') {
-        response = await axios.post(`${API_BASE_URL}${endpoint}`, data, requestConfig);
+        response = await axios.post(fullUrl, data, requestConfig);
       }
 
       // Update session ID from response header if available
