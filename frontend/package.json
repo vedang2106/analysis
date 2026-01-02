@@ -17,7 +17,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "vercel-build": "CI=true react-scripts build"
+    "vercel-build": "CI=true react-scripts build",
+    "build": "react-scripts build"
   },
   "engines": {
     "node": ">=18.0.0",
