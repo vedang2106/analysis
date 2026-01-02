@@ -9,9 +9,7 @@ import ChatWithData from './components/ChatWithData';
 import Insights from './components/Insights';
 import Exports from './components/Exports';
 
-// Use relative path for Vercel deployment, localhost for development
-const API_BASE_URL = process.env.REACT_APP_API_URL || 
-  (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api');
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Configure axios with timeout
 axios.defaults.timeout = 300000; // 5 minutes for large file uploads
@@ -39,18 +37,16 @@ function App() {
       localStorage.setItem('sessionId', newSessionId);
     }
 
-    // Check if backend is running (non-blocking, just for info)
+    // Check if backend is running
     const checkBackendHealth = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/health`, { timeout: 5000 });
         if (response.data?.status === 'ok') {
-          console.log('✅ Backend server is running');
+          console.log('Backend server is running');
         }
       } catch (err) {
-        // Don't show error immediately - user might start backend later
-        console.warn('⚠️ Backend server not detected. Some features may not work.');
-        console.warn('💡 To start backend: Run "npm run start:backend" in another terminal, or use "npm start" to start both.');
-        // Only show error if user tries to use a feature that requires backend
+        console.warn('Backend health check failed:', err.message);
+        setError(`⚠️ Cannot connect to backend server at ${API_BASE_URL}. Please ensure the Flask server is running on port 5000.`);
       }
     };
 
@@ -93,13 +89,10 @@ function App() {
       };
 
       let response;
-      const fullUrl = `${API_BASE_URL}${endpoint}`;
-      console.log(`Making ${method} request to: ${fullUrl}`);
-      
       if (method === 'GET') {
-        response = await axios.get(fullUrl, requestConfig);
+        response = await axios.get(`${API_BASE_URL}${endpoint}`, requestConfig);
       } else if (method === 'POST') {
-        response = await axios.post(fullUrl, data, requestConfig);
+        response = await axios.post(`${API_BASE_URL}${endpoint}`, data, requestConfig);
       }
 
       // Update session ID from response header if available
@@ -122,7 +115,6 @@ function App() {
       console.error('API Request Error:', err);
       
       let errorMsg = 'An error occurred';
-      let showBackendTip = false;
       
       // Check for network errors (connection refused, network error, connection reset)
       if (err.code === 'ECONNREFUSED' || 
@@ -131,8 +123,7 @@ function App() {
           err.message?.includes('Network Error') ||
           err.message?.includes('Connection reset') ||
           (err.request && !err.response)) {
-        errorMsg = `Cannot connect to backend server at ${API_BASE_URL}.`;
-        showBackendTip = true;
+        errorMsg = `Cannot connect to backend server at ${API_BASE_URL}. Please ensure the Flask server is running on port 5000.`;
       } else if (err.code === 'ETIMEDOUT' || err.message?.includes('timeout')) {
         errorMsg = 'Request timed out. The server is taking too long to respond. Please try again or check if the server is still running.';
       } else if (err.response) {
@@ -140,15 +131,10 @@ function App() {
         errorMsg = err.response.data?.error || err.response.data?.message || `Server error: ${err.response.status} ${err.response.statusText}`;
       } else if (err.request) {
         // Request was made but no response received
-        errorMsg = 'No response from server.';
-        showBackendTip = true;
+        errorMsg = 'No response from server. Please check if the backend server is running.';
       } else {
         // Something else happened
         errorMsg = err.message || 'An unexpected error occurred';
-      }
-      
-      if (showBackendTip) {
-        errorMsg += ' To start the backend, run: "npm run start:backend" or "npm start" (starts both).';
       }
       
       setError(errorMsg);

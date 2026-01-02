@@ -16,13 +16,6 @@ import base64
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend for server
 import matplotlib.pyplot as plt
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
-
-# API Key from .env file - access it using: os.environ.get('API_KEY')
-# Example: api_key = os.environ.get('API_KEY')
 
 from src.loaders import detect_and_load
 from src.profiling import compute_overview
@@ -35,38 +28,26 @@ from src.nlqa import answer_question
 app = Flask(__name__)
 
 # Get allowed origins from environment variable or use defaults
-# In production (Vercel), allow requests from any origin (handled by Vercel's CORS)
-# In development, use localhost
-default_origins = ['http://localhost:3000', 'http://127.0.0.1:3000']
-if os.environ.get('VERCEL'):
-    # On Vercel, allow all origins (Vercel handles CORS)
-    allowed_origins = ['*']
-else:
-    env_origins = os.environ.get('ALLOWED_ORIGINS', '')
-    if env_origins:
-        allowed_origins = [origin.strip() for origin in env_origins.split(',')]
-    else:
-        allowed_origins = default_origins
+# Include common development ports (3000, 3001) for React apps
+# Also allow Vercel domains dynamically
+default_origins = 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001'
+env_origins = os.environ.get('ALLOWED_ORIGINS', default_origins)
+
+# If running on Vercel, automatically allow the Vercel domain
+vercel_url = os.environ.get('VERCEL_URL')
+if vercel_url and vercel_url not in env_origins:
+    env_origins = f"{env_origins},https://{vercel_url}"
+
+allowed_origins = env_origins.split(',')
 
 # Enable CORS for React frontend with proper configuration
-# Support credentials and all necessary headers
-# automatic_options=True ensures OPTIONS requests are handled automatically
-CORS(app, 
-     resources={
-         r"/api/*": {
-             "origins": allowed_origins,
-             "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
-             "allow_headers": ["Content-Type", "X-Session-ID", "x-session-id", "Authorization"],
-             "expose_headers": ["X-Session-ID", "x-session-id"],
-             "supports_credentials": True,
-             "max_age": 3600
-         }
-     },
-     supports_credentials=True,
-     automatic_options=True)
-
-# Flask-CORS will handle CORS headers automatically
-# The after_request is handled by Flask-CORS
+CORS(app, resources={
+    r"/api/*": {
+        "origins": allowed_origins,
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "X-Session-ID", "x-session-id"]
+    }
+})
 
 # Session management
 sessions = {}
@@ -90,9 +71,6 @@ def check_session(f):
     """Decorator to check session validity"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Skip session check for OPTIONS preflight requests
-        if request.method == 'OPTIONS':
-            return f(*args, **kwargs)
         session_id = get_session_id()
         if session_id not in sessions:
             sessions[session_id] = {
@@ -110,9 +88,6 @@ def check_rate_limit(f):
     """Decorator for rate limiting"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Skip rate limiting for OPTIONS preflight requests
-        if request.method == 'OPTIONS':
-            return f(*args, **kwargs)
         session_id = get_session_id()
         current_time = time.time()
         
@@ -138,16 +113,11 @@ def health():
     return jsonify({'status': 'ok'})
 
 
-@app.route('/api/upload', methods=['POST', 'OPTIONS'])
+@app.route('/api/upload', methods=['POST'])
 @check_session
 @check_rate_limit
 def upload_file():
     """Upload and load dataset"""
-    # OPTIONS requests are handled by Flask-CORS and decorators skip processing
-    # So if we reach here with OPTIONS, just return empty response (CORS headers added by Flask-CORS)
-    if request.method == 'OPTIONS':
-        return jsonify({}), 200
-    
     try:
         if 'file' not in request.files:
             return jsonify({'error': 'No file provided'}), 400
